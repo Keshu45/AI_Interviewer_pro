@@ -1,0 +1,6 @@
+{
+  "name": "AI Interviewer Pro",
+  "description": "A strict and professional AI interviewer that evaluates candidates on specific roles through a structured 10-question interview.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": []
+}
