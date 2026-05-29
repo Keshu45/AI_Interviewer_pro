@@ -24,14 +24,41 @@ export default function ChatApp() {
   const [micError, setMicError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 1 || isLoading) {
+      scrollToBottom('smooth');
+    }
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      if (input === '') {
+        textareaRef.current.style.height = '52px'; // Reset height
+      } else {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+      }
+    }
+  }, [input]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    }
+    scrollToBottom('auto');
+  };
+
+  const handleFocus = () => {
+    setTimeout(() => scrollToBottom('smooth'), 150);
+  };
 
   useEffect(() => {
     // Setup Speech Recognition
@@ -142,7 +169,7 @@ export default function ChatApp() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
       {/* Header */}
-      <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#0a0a0a]/95 backdrop-blur-xl z-50 w-full sticky top-0">
+      <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#0a0a0a]/95 backdrop-blur-xl z-50 w-full">
         <div className="flex items-center gap-4">
           <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/10 shadow-lg shadow-black/50">
             <Terminal className="w-5 h-5 text-emerald-400" />
@@ -159,7 +186,7 @@ export default function ChatApp() {
 
       {/* Chat Area */}
       <main className="flex-1 overflow-y-auto w-full scroll-smooth z-10 relative">
-        <div className="p-4 md:p-6 pt-12 md:pt-16 max-w-4xl mx-auto flex flex-col gap-6">
+        <div className="p-4 md:p-6 pt-12 md:pt-16 pb-8 md:pb-6 max-w-4xl mx-auto flex flex-col gap-6">
           {messages.map((message) => (
           <div
             key={message.id}
@@ -170,7 +197,7 @@ export default function ChatApp() {
           >
             <div
               className={cn(
-                "flex gap-4 max-w-[85%] md:max-w-[75%]",
+                "flex gap-3 md:gap-4 max-w-[98%] sm:max-w-[90%] md:max-w-[85%]",
                 message.role === 'user' ? "flex-row-reverse" : "flex-row"
               )}
             >
@@ -187,10 +214,10 @@ export default function ChatApp() {
               </div>
 
               {/* Message Bubble container */}
-              <div className="relative group">
+              <div className="relative group flex flex-col gap-1 w-full min-w-0">
                 <div
                   className={cn(
-                    "px-5 py-4 rounded-2xl text-[15px] leading-relaxed",
+                    "px-4 md:px-5 py-3 md:py-4 rounded-2xl text-[14.5px] md:text-[15px] leading-relaxed break-words w-full",
                     message.role === 'user'
                       ? "bg-neutral-100 text-neutral-900 rounded-tr-sm shadow-sm"
                       : "bg-neutral-900/80 border border-white/5 text-neutral-200 rounded-tl-sm shadow-md backdrop-blur-sm"
@@ -199,7 +226,7 @@ export default function ChatApp() {
                   {message.role === 'user' ? (
                     <p className="whitespace-pre-wrap font-medium">{message.content}</p>
                   ) : (
-                    <div className="markdown-body">
+                    <div className="markdown-body w-full">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
                     </div>
                   )}
@@ -207,13 +234,16 @@ export default function ChatApp() {
 
                 {/* Text-to-Speech Button (Assistant only) */}
                 {message.role === 'assistant' && (
-                  <button
-                    onClick={() => speakText(message.content)}
-                    className="absolute -right-12 top-2 p-2.5 text-neutral-400 hover:text-emerald-400 bg-neutral-900 hover:bg-neutral-800 rounded-full border border-white/5 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 shadow-sm"
-                    title="Read aloud"
-                  >
-                    <Volume2 size={16} />
-                  </button>
+                  <div className="flex md:absolute md:-right-12 md:top-2 mt-1 md:mt-0 justify-start md:justify-center">
+                    <button
+                      onClick={() => speakText(message.content)}
+                      className="p-2 text-neutral-400 hover:text-emerald-400 md:bg-neutral-900 md:hover:bg-neutral-800 rounded-full border border-transparent md:border-white/5 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 shadow-none md:shadow-sm flex items-center gap-2 text-xs font-medium"
+                      title="Read aloud"
+                    >
+                      <Volume2 size={16} />
+                      <span className="md:hidden">Read Aloud</span>
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -233,12 +263,12 @@ export default function ChatApp() {
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} className="h-4" />
+        <div ref={messagesEndRef} className="h-4" /> {/* Standard spacing */}
         </div>
       </main>
 
       {/* Input Area */}
-      <footer className="p-4 md:p-6 border-t border-white/5 bg-[#0a0a0a]/90 backdrop-blur-xl w-full z-10 relative">
+      <footer className="p-4 md:p-6 border-t border-white/5 bg-[#0a0a0a]/90 backdrop-blur-xl flex-shrink-0 w-full z-10 relative">
         <div className="max-w-4xl mx-auto flex flex-col gap-3 relative">
           {micError && (
             <div className="absolute -top-14 left-0 right-0 mx-auto w-max px-4 py-2 bg-red-950/80 border border-red-900/50 text-red-400 text-[13px] rounded-lg backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 shadow-lg">
@@ -247,8 +277,10 @@ export default function ChatApp() {
           )}
           <div className="flex gap-3 relative shadow-2xl rounded-2xl w-full">
             <textarea
+              ref={textareaRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
+              onFocus={handleFocus}
               onKeyDown={handleKeyDown}
               placeholder="Type or speak your answer here..."
               className={cn(

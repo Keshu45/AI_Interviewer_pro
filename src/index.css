@@ -4,10 +4,10 @@
   @apply mb-4 last:mb-0 text-neutral-200 leading-relaxed;
 }
 .markdown-body ul {
-  @apply list-disc list-outside ml-6 mb-4 text-neutral-200 space-y-1.5 marker:text-emerald-500/70;
+  @apply list-disc list-outside ml-4 md:ml-6 mb-4 text-neutral-200 space-y-1.5 marker:text-emerald-500/70;
 }
 .markdown-body ol {
-  @apply list-decimal list-outside ml-6 mb-4 text-neutral-200 space-y-1.5 marker:text-emerald-500/70;
+  @apply list-decimal list-outside ml-4 md:ml-6 mb-4 text-neutral-200 space-y-1.5 marker:text-emerald-500/70;
 }
 .markdown-body blockquote {
   @apply border-l-2 border-emerald-500 pl-4 py-1 italic text-neutral-400 bg-emerald-500/5 mb-4 rounded-r-lg;
